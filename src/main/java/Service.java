@@ -177,5 +177,31 @@ public class Service {
             System.err.println("Ошибка при получении количества сотрудников в IT-отделе: " + e.getMessage());
         }
     }
+
+    public void deleteDepartmentAndEmployees(String departmentName) {
+        try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
+            int departmentId = getDepartmentIdByName(con, departmentName);
+
+            if (departmentId == -1) {
+                System.err.println("Департамент " + departmentName + " не найден.");
+                return;
+            }
+
+            String deleteEmployeesSql = "DELETE FROM Employee WHERE DepartmentID = ?";
+            PreparedStatement deleteEmployeesStmt = con.prepareStatement(deleteEmployeesSql);
+            deleteEmployeesStmt.setInt(1, departmentId);
+            int employeesDeleted = deleteEmployeesStmt.executeUpdate();
+            System.out.println("Удалено " + employeesDeleted + " сотрудников из отдела " + departmentName + ".");
+
+            String deleteDepartmentSql = "DELETE FROM Department WHERE ID = ?";
+            PreparedStatement deleteDepartmentStmt = con.prepareStatement(deleteDepartmentSql);
+            deleteDepartmentStmt.setInt(1, departmentId);
+            int departmentsDeleted = deleteDepartmentStmt.executeUpdate();
+            System.out.println("Удален отдел " + departmentName + ".");
+
+        } catch (SQLException e) {
+            System.err.println("Ошибка при удалении отдела и сотрудников: " + e.getMessage());
+        }
+    }
 }
 

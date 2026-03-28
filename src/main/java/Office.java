@@ -14,6 +14,8 @@ public class Office {
         service.setDepartmentForAnnToHR();
         service.correctEmployeeNames();
         service.countEmployeesInIT();
+        service.deleteDepartmentAndEmployees("IT");
+        service.countEmployeesInIT();
 
         Option opt = Option.AddDepartment;
         Scanner sc = new Scanner(System.in);
