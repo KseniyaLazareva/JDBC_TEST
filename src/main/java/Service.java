@@ -187,16 +187,9 @@ public class Service {
                 return;
             }
 
-            String deleteEmployeesSql = "DELETE FROM Employee WHERE DepartmentID = ?";
-            PreparedStatement deleteEmployeesStmt = con.prepareStatement(deleteEmployeesSql);
-            deleteEmployeesStmt.setInt(1, departmentId);
-            int employeesDeleted = deleteEmployeesStmt.executeUpdate();
-            System.out.println("Удалено " + employeesDeleted + " сотрудников из отдела " + departmentName + ".");
-
             String deleteDepartmentSql = "DELETE FROM Department WHERE ID = ?";
             PreparedStatement deleteDepartmentStmt = con.prepareStatement(deleteDepartmentSql);
             deleteDepartmentStmt.setInt(1, departmentId);
-            int departmentsDeleted = deleteDepartmentStmt.executeUpdate();
             System.out.println("Удален отдел " + departmentName + ".");
 
         } catch (SQLException e) {
