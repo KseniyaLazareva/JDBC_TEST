@@ -11,10 +11,11 @@ public class Office {
 
     public static void main(String[] args) {
         Service service = new Service();
+        Department department = new Department(2,"IT");
         service.setDepartmentForAnnToHR();
         service.correctEmployeeNames();
         service.countEmployeesInIT();
-        service.deleteDepartmentAndEmployees("IT");
+        Service.removeDepartment(department);
         service.countEmployeesInIT();
 
         Option opt = Option.AddDepartment;
