@@ -39,19 +39,20 @@ public class Service {
         }
     }
 
-    public static void removeDepartment(Department d) {
+    public static void removeDepartment(Department department) {
         try (Connection con = DriverManager.getConnection("jdbc:h2:.\\Office")) {
-            PreparedStatement stm = con.prepareStatement("DELETE FROM Department WHERE ID=?");
-            stm.setInt(1, d.departmentID);
-            stm.executeUpdate();
             String deleteEmployeesSql = "DELETE FROM Employee WHERE DepartmentID = ?";
             PreparedStatement deleteEmployeesStmt = con.prepareStatement(deleteEmployeesSql);
-            deleteEmployeesStmt.setInt(1, d.departmentID);
-            int employeesDeleted = deleteEmployeesStmt.executeUpdate();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+            deleteEmployeesStmt.setInt(1, department.getDepartmentID());
+            deleteEmployeesStmt.executeUpdate();
+            String deleteDepartmentSql = "DELETE FROM Department WHERE ID = ?";
+            PreparedStatement deleteDepartmentStmt = con.prepareStatement(deleteDepartmentSql);
+            deleteDepartmentStmt.setInt(1, department.getDepartmentID());
+            deleteDepartmentStmt.executeUpdate();
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void addEmployee(Employee empl) {
