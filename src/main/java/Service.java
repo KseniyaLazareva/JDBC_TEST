@@ -115,7 +115,7 @@ public class Service {
         }
     }
 
-    private int getDepartmentIdByName(Connection conn, String departmentName) throws SQLException {
+    int getDepartmentIdByName(Connection conn, String departmentName) throws SQLException {
         String sql = "SELECT ID FROM Department WHERE NAME = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, departmentName);
@@ -208,5 +208,103 @@ public class Service {
             System.err.println("Ошибка при удалении отдела и сотрудников: " + e.getMessage());
         }
     }
+    public void initializeDatabase() {
+        try (var con = getConnection()) {
+            dropTable(con, "Employee");
+            dropTable(con, "Department");
+
+            createTable(con, "Department", "ID INT PRIMARY KEY AUTO_INCREMENT, NAME VARCHAR(255) NOT NULL");
+            createTable(con, "Employee", "ID INT PRIMARY KEY AUTO_INCREMENT, NAME VARCHAR(255) NOT NULL, DepartmentID INT, FOREIGN KEY (DepartmentID) REFERENCES Department(ID)");
+
+            insertDepartment(con, "HR");
+            insertDepartment(con, "Finance");
+            insertDepartment(con, "IT");
+
+            insertEmployee(con, "Ann", 1); // ID департамента HR
+            insertEmployee(con, "John", 3); // ID департамента IT
+            insertEmployee(con, "Mike", 3); // ID департамента IT
+            insertEmployee(con, "Sarah", 2); // ID департамента Finance
+            insertEmployee(con, "ann", 1); // ID департамента HR
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:h2:.\\Office");
+    }
+
+    private void dropTable(Connection con, String tableName) throws SQLException {
+        String sql = "DROP TABLE IF EXISTS " + tableName;
+        executeUpdate(con, sql);
+    }
+
+    private void createTable(Connection con, String tableName, String columns) throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + columns + ")";
+        executeUpdate(con, sql);
+    }
+
+    private void insertDepartment(Connection con, String departmentName) throws SQLException {
+        String sql = "INSERT INTO Department (NAME) VALUES (?)";
+        executeUpdateWithParameter(con, sql, departmentName);
+    }
+
+    private void insertEmployee(Connection con, String name, int departmentId) throws SQLException {
+        String sql = "INSERT INTO Employee (NAME, DepartmentID) VALUES (?, ?)";
+        executeUpdateWithParameters(con, sql, name, departmentId);
+    }
+
+    public int getEmployeeDepartmentIdByName(Connection con, String employeeName) throws SQLException {
+        String sql = "SELECT DepartmentID FROM Employee WHERE NAME = ?";
+        return getSingleInt(con, sql, employeeName);
+    }
+
+    public int getDepartmentCountByName(Connection con, String departmentName) throws SQLException {
+        String sql = "SELECT COUNT(*) AS count FROM Department WHERE NAME = ?";
+        return getSingleInt(con, sql, departmentName);
+    }
+
+    public int getEmployeeCountByDepartmentId(Connection con, int departmentId) throws SQLException {
+        String sql = "SELECT COUNT(*) AS count FROM Employee WHERE DepartmentID = ?";
+        return getSingleInt(con, sql, departmentId);
+    }
+
+    private void executeUpdate(Connection con, String sql) throws SQLException {
+        try (var stmt = con.prepareStatement(sql)) {
+            stmt.execute();
+        }
+    }
+
+    private void executeUpdateWithParameter(Connection con, String sql, String parameter) throws SQLException {
+        try (var stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, parameter);
+            stmt.executeUpdate();
+        }
+    }
+
+    private void executeUpdateWithParameters(Connection con, String sql, String name, int departmentId) throws SQLException {
+        try (var stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            stmt.setInt(2, departmentId);
+            stmt.executeUpdate();
+        }
+    }
+
+    private int getSingleInt(Connection con, String sql, Object... parameters) throws SQLException {
+        try (var stmt = con.prepareStatement(sql)) {
+            for (int i = 0; i < parameters.length; i++) {
+                if (parameters[i] instanceof String) {
+                    stmt.setString(i + 1, (String) parameters[i]);
+                } else if (parameters[i] instanceof Integer) {
+                    stmt.setInt(i + 1, (Integer) parameters[i]);
+                }
+            }
+            var rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt(1) : -1;
+        }
+    }
+
 }
+
 
